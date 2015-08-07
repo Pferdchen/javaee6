@@ -15,6 +15,8 @@ import javax.persistence.Temporal;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 
+import org.codehaus.jackson.annotate.JsonIgnoreProperties;
+
 /**
  * <p>
  * A performance represents a single instance of a show.
@@ -29,6 +31,7 @@ import javax.validation.constraints.NotNull;
 @SuppressWarnings("serial")
 @Entity
 @Table(uniqueConstraints = @UniqueConstraint(columnNames = { "date", "show_id" }))
+@JsonIgnoreProperties("show")
 public class Performance implements Serializable {
 
     /* Declaration of fields */
