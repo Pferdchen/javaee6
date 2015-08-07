@@ -14,8 +14,10 @@ import javax.inject.Inject;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -28,6 +30,7 @@ import org.jboss.examples.ticketmonster.model.TicketCategory;
 import org.jboss.examples.ticketmonster.model.TicketPrice;
 import org.jboss.examples.ticketmonster.service.AllocatedSeats;
 import org.jboss.examples.ticketmonster.service.SeatAllocationService;
+import org.jboss.examples.ticketmonster.util.qualifier.Cancelled;
 import org.jboss.examples.ticketmonster.util.qualifier.Created;
 
 /**
@@ -50,6 +53,9 @@ public class BookingService extends BaseEntityService<Booking> {
 
     @Inject @Created
     private Event<Booking> newBookingEvent;
+
+    @Inject @Cancelled
+    private Event<Booking> cancelledBookingEvent;
 
     public BookingService() {
         super(Booking.class);
@@ -195,5 +201,24 @@ public class BookingService extends BaseEntityService<Booking> {
             ticketPricesById.put(ticketPrice.getId(), ticketPrice);
         }
         return ticketPricesById;
+    }
+
+    /**
+     * <p>
+     * Delete a booking by id
+     * </p>
+     * @param id
+     * @return
+     */
+    @DELETE
+    @Path("/{id:[0-9][0-9]*}")
+    public Response deleteBooking(@PathParam("id") Long id) {
+        Booking booking = getEntityManager().find(Booking.class, id);
+        if (booking == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        getEntityManager().remove(booking);
+        cancelledBookingEvent.fire(booking);
+        return Response.noContent().build();
     }
 }
